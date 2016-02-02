@@ -1,0 +1,21 @@
+#!/bin/env ruby
+#
+# Simple script to unstage Windows-generated Gemfile.lock before commit
+# Place this in .git/hooks/
+# Can be overriden with 'git commit --no-verify'
+
+require 'bundler'
+
+if `git diff --cached`.include? 'Gemfile.lock'
+
+    file = Bundler::LockfileParser.new(Bundler.read_file('Gemfile.lock'))
+
+    file.platforms.each do |platform|
+
+        if ['mingw32'].include? platform.os # should contain platforms you want to exclude. Ex. ['mingw32', 'mswin64']
+            puts "#{platform.os}-system detected. Unstaging gemfile …"
+            puts `git reset Gemfile.lock`
+            break;
+        end
+    end
+end
